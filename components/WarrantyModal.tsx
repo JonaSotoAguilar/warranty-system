@@ -26,7 +26,7 @@ export function WarrantyModal({
   availableLocations,
   onAddLocation,
   onDeleteLocation,
-}: WarrantyModalProps) {
+}: Readonly<WarrantyModalProps>) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<Warranty>>({});
 
@@ -91,15 +91,13 @@ export function WarrantyModal({
         readyDate: prev.readyDate || new Date().toISOString(),
         deliveryDate: undefined,
       }));
-    } else {
+    } else if (formData.deliveryDate || formData.readyDate) {
       // Si volvemos a pendiente (o cualquier otro estado inicial), limpiamos ambas fechas
-      if (formData.deliveryDate || formData.readyDate) {
-        setFormData((prev) => ({
-          ...prev,
-          deliveryDate: undefined,
-          readyDate: undefined,
-        }));
-      }
+      setFormData((prev) => ({
+        ...prev,
+        deliveryDate: undefined,
+        readyDate: undefined,
+      }));
     }
   }, [formData.status]);
 
@@ -117,7 +115,7 @@ export function WarrantyModal({
   const handleNumberInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // Prevenir caracteres no numéricos excepto teclas de control
     if (
-      !/[0-9]/.test(e.key) &&
+      !/\d/.test(e.key) &&
       !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key)
     ) {
       e.preventDefault();
@@ -177,6 +175,11 @@ export function WarrantyModal({
     }
   };
 
+  const getSubmitButtonText = () => {
+    if (warrantyToEdit) return "Actualizar";
+    return "Registrar";
+  };
+
   return (
     <Dialog
       isOpen={isOpen}
@@ -186,8 +189,8 @@ export function WarrantyModal({
       <form onSubmit={handleSubmit} className="space-y-4 mt-2">
         {/* Fila 1: Boleta y SKU */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">N° Boleta *</label>
+          <label className="grid gap-2">
+            <span className="text-sm font-medium">N° Boleta *</span>
             <Input
               required
               autoFocus
@@ -205,9 +208,9 @@ export function WarrantyModal({
                 })
               }
             />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">SKU</label>
+          </label>
+          <label className="grid gap-2">
+            <span className="text-sm font-medium">SKU</span>
             <Input
               disabled={isLocked}
               placeholder="Código producto"
@@ -216,13 +219,13 @@ export function WarrantyModal({
                 setFormData({ ...formData, sku: e.target.value })
               }
             />
-          </div>
+          </label>
         </div>
 
         {/* Fila 2: Cliente y RUT */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="sm:col-span-2 grid gap-2">
-            <label className="text-sm font-medium">Cliente *</label>
+          <label className="sm:col-span-2 grid gap-2">
+            <span className="text-sm font-medium">Cliente *</span>
             <Input
               disabled={isImmutable}
               required
@@ -232,9 +235,9 @@ export function WarrantyModal({
                 setFormData({ ...formData, clientName: e.target.value })
               }
             />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">RUT</label>
+          </label>
+          <label className="grid gap-2">
+            <span className="text-sm font-medium">RUT</span>
             <Input
               disabled={isLocked}
               placeholder="12.345.678-9"
@@ -242,13 +245,13 @@ export function WarrantyModal({
               onChange={handleRutChange}
               maxLength={12} // XX.XXX.XXX-X
             />
-          </div>
+          </label>
         </div>
 
         {/* Fila 3: Contacto */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Email</label>
+          <label className="grid gap-2">
+            <span className="text-sm font-medium">Email</span>
             <Input
               disabled={isLocked}
               type="email"
@@ -258,9 +261,9 @@ export function WarrantyModal({
                 setFormData({ ...formData, email: e.target.value })
               }
             />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Teléfono *</label>
+          </label>
+          <label className="grid gap-2">
+            <span className="text-sm font-medium">Teléfono *</span>
             <Input
               required
               disabled={isLocked}
@@ -269,13 +272,13 @@ export function WarrantyModal({
               onChange={handlePhoneChange}
               maxLength={16}
             />
-          </div>
+          </label>
         </div>
 
         {/* Fila 4: Producto y Falla */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Producto *</label>
+          <label className="grid gap-2">
+            <span className="text-sm font-medium">Producto *</span>
             <Input
               disabled={isImmutable}
               required
@@ -285,9 +288,9 @@ export function WarrantyModal({
                 setFormData({ ...formData, product: e.target.value })
               }
             />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Falla / Motivo *</label>
+          </label>
+          <label className="grid gap-2">
+            <span className="text-sm font-medium">Falla / Motivo *</span>
             <Input
               disabled={isLocked}
               required
@@ -297,15 +300,27 @@ export function WarrantyModal({
                 setFormData({ ...formData, failureDescription: e.target.value })
               }
             />
-          </div>
+          </label>
         </div>
 
         {/* Fila 5: Ubicación y Costo */}
         <div className="grid grid-cols-2 gap-4 bg-zinc-50 dark:bg-zinc-900 p-3 rounded-md">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Ubicación</label>
-            {!isAddingLocation ? (
-              <div className="flex gap-2 items-center">
+          <label className="grid gap-2">
+            <span className="text-sm font-medium">Ubicación</span>
+            {isAddingLocation ? (
+              <span className="flex gap-2">
+                <Input
+                  autoFocus
+                  placeholder="Nueva ubicación..."
+                  value={newLocation}
+                  onChange={(e) => setNewLocation(e.target.value)}
+                />
+                <Button type="button" size="sm" onClick={handleAddNewLocation}>
+                  OK
+                </Button>
+              </span>
+            ) : (
+              <span className="flex gap-2 items-center">
                 <select
                   disabled={isLocked}
                   className="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus-visible:outline-none focus:ring-2 focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 disabled:opacity-50"
@@ -349,24 +364,12 @@ export function WarrantyModal({
                     </Button>
                   </>
                 )}
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <Input
-                  autoFocus
-                  placeholder="Nueva ubicación..."
-                  value={newLocation}
-                  onChange={(e) => setNewLocation(e.target.value)}
-                />
-                <Button type="button" size="sm" onClick={handleAddNewLocation}>
-                  OK
-                </Button>
-              </div>
+              </span>
             )}
-          </div>
+          </label>
 
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Costo ($)</label>
+          <label className="grid gap-2">
+            <span className="text-sm font-medium">Costo ($)</span>
             <Input
               disabled={isLocked}
               type="number"
@@ -384,12 +387,12 @@ export function WarrantyModal({
                 }
               }}
             />
-          </div>
+          </label>
         </div>
 
         {/* Fila 6: Estado y Notas (Estado editable siempre, o restringido? El prompt dice "excepto 'estado' y 'notas internas' no seran editables". O sea estado y notas SI son editables) */}
-        <div className="grid gap-2">
-          <label className="text-sm font-medium">Estado</label>
+        <label className="grid gap-2">
+          <span className="text-sm font-medium">Estado</span>
           <select
             className="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus-visible:outline-none focus:ring-2 focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
             value={formData.status}
@@ -401,10 +404,10 @@ export function WarrantyModal({
             <option value="ready">Lista (Para retiro)</option>
             <option value="completed">Completada (Entregada/Cerrada)</option>
           </select>
-        </div>
+        </label>
 
-        <div className="grid gap-2">
-          <label className="text-sm font-medium">Notas internas</label>
+        <label className="grid gap-2">
+          <span className="text-sm font-medium">Notas internas</span>
           <Input
             placeholder="Detalles adicionales..."
             value={formData.notes || ""}
@@ -412,7 +415,7 @@ export function WarrantyModal({
               setFormData({ ...formData, notes: e.target.value })
             }
           />
-        </div>
+        </label>
 
         <div className="flex justify-end gap-2 pt-4 border-t dark:border-zinc-800">
           <Button
@@ -424,11 +427,7 @@ export function WarrantyModal({
             Cancelar
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading
-              ? "Guardando..."
-              : warrantyToEdit
-              ? "Actualizar"
-              : "Registrar"}
+            {loading ? "Guardando..." : getSubmitButtonText()}
           </Button>
         </div>
       </form>
