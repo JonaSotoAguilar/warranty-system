@@ -14,11 +14,57 @@ function mapToWarranty(item: any): Warranty {
   };
 }
 
-export async function getWarranties(): Promise<Warranty[]> {
-  const items = await prisma.warranty.findMany({
-    orderBy: { entryDate: "desc" },
-  });
-  return items.map(mapToWarranty);
+export async function getWarranties(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: WarrantyStatus[];
+}): Promise<{ data: Warranty[]; total: number; page: number; limit: number }> {
+  const page = params?.page || 1;
+  const limit = params?.limit || 20;
+  const skip = (page - 1) * limit;
+
+  // Construir filtros
+  const where: any = {};
+
+  if (params?.status && params.status.length > 0) {
+    where.status = { in: params.status };
+  }
+
+  // Nota: La búsqueda difusa en Prisma SQLite es limitada, pero intentaremos algo básico.
+  // Para search real, normalmente se usa un índice FullText o similar.
+  if (params?.search) {
+    const search = params.search;
+    // Búsqueda simple OR en varios campos
+    where.OR = [
+      { clientName: { contains: search } },
+      { product: { contains: search } },
+      // invoiceNumber es Int, no podemos hacer contains directo con string a menos que sea exacto o convirtamos.
+      // Para simplificar, buscamos si es un número válido
+    ];
+
+    const searchNum = Number(search);
+    if (!Number.isNaN(searchNum)) {
+      where.OR.push({ invoiceNumber: { equals: searchNum } });
+    }
+  }
+
+  const [items, total] = await Promise.all([
+    prisma.warranty.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { entryDate: "desc" },
+    }),
+    prisma.warranty.count({ where }),
+  ]);
+
+  return {
+    data: items.map(mapToWarranty),
+    total,
+    page,
+    limit,
+  };
 }
 
 export async function saveWarranty(warranty: Warranty): Promise<void> {
