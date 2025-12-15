@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import fs from "fs/promises";
-import path from "path";
+import fs from "node:fs/promises";
+import path from "node:path";
 // Load env vars
 import "dotenv/config";
 
@@ -50,12 +50,11 @@ async function main() {
   }
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+try {
+  await main();
+  await prisma.$disconnect();
+} catch (e) {
+  console.error(e);
+  await prisma.$disconnect();
+  process.exit(1);
+}

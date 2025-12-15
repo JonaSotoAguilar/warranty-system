@@ -12,12 +12,18 @@ function generateId() {
   return crypto.randomUUID();
 }
 
-export async function GET() {
-  const warranties = await getWarranties();
-  warranties.sort(
-    (a, b) => new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime()
-  );
-  return NextResponse.json(warranties);
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const page = Number(searchParams.get("page")) || 1;
+  const limit = Number(searchParams.get("limit")) || 20;
+  const search = searchParams.get("search") || undefined;
+  const statusParam = searchParams.get("status");
+
+  const status = statusParam ? (statusParam.split(",") as any[]) : undefined;
+
+  const result = await getWarranties({ page, limit, search, status });
+
+  return NextResponse.json(result);
 }
 
 export async function POST(request: Request) {
