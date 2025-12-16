@@ -1,5 +1,7 @@
 "use client";
 
+import { signout } from "@/app/auth/actions";
+
 import { useEffect, useState, useCallback } from "react";
 import { Warranty, WarrantyStatus } from "@/lib/types";
 import { WarrantyTable } from "./WarrantyTable";
@@ -13,6 +15,7 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { Input } from "./ui/input";
 
@@ -149,14 +152,19 @@ export function WarrantyDashboard() {
             Gestiona servicios, estados y ubicaciones.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingWarranty(null);
-            setIsModalOpen(true);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" /> Nueva Garantía
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => signout()}>
+            <LogOut className="mr-2 h-4 w-4" /> Salir
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingWarranty(null);
+              setIsModalOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Nueva Garantía
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">

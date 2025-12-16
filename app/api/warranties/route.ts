@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import {
   getWarranties,
   saveWarranty,
@@ -13,6 +14,15 @@ function generateId() {
 }
 
 export async function GET(request: Request) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const page = Number(searchParams.get("page")) || 1;
   const limit = Number(searchParams.get("limit")) || 20;
@@ -21,12 +31,27 @@ export async function GET(request: Request) {
 
   const status = statusParam ? (statusParam.split(",") as any[]) : undefined;
 
-  const result = await getWarranties({ page, limit, search, status });
+  const result = await getWarranties({
+    page,
+    limit,
+    search,
+    status,
+    userId: user.id,
+  });
 
   return NextResponse.json(result);
 }
 
 export async function POST(request: Request) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body: NewWarrantyPayload = await request.json();
 
@@ -39,6 +64,7 @@ export async function POST(request: Request) {
 
     const newWarranty: Warranty = {
       id: generateId(),
+      userId: user.id, // Assign to current user
       invoiceNumber: body.invoiceNumber,
       clientName: body.clientName,
       rut: body.rut,
@@ -68,6 +94,15 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body: Warranty = await request.json();
 
@@ -75,22 +110,29 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Missing ID" }, { status: 400 });
     }
 
-    // Asegurar lógica de fecha de entrega si viene en el body
-    // Opcionalmente podríamos forzarla aquí, pero confiaremos en que el frontend envía la data correcta
-    // O mejor aún: si el frontend manda la fecha, la respetamos.
-
-    await updateWarranty(body);
+    // Pass userId to ensure ownership
+    await updateWarranty(body, user.id);
     return NextResponse.json(body, { status: 200 });
   } catch (e) {
     console.error(e);
+    // If our storage throws "No warranty found or access denied" it comes here
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal Server Error or Access Denied" },
       { status: 500 }
     );
   }
 }
 
 export async function DELETE(request: Request) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -99,12 +141,12 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Missing ID" }, { status: 400 });
     }
 
-    await deleteWarranty(id);
+    await deleteWarranty(id, user.id);
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (e) {
     console.error(e);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal Server Error or Access Denied" },
       { status: 500 }
     );
   }

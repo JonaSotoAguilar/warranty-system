@@ -17,6 +17,7 @@ export interface Warranty {
   status: WarrantyStatus;
   repairCost?: number;
   notes?: string;
+  userId?: string;
 }
 
 export type NewWarrantyPayload = Omit<Warranty, "id" | "status"> & {

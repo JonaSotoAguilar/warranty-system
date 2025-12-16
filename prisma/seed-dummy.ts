@@ -50,7 +50,61 @@ function randomItem<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+import { createClient } from "@supabase/supabase-js";
+
+// Initialize Supabase Admin Client
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  }
+);
+
 async function main() {
+  console.log("Setting up test user...");
+
+  const email = "test@example.com";
+  const password = "password123";
+
+  // Check if user exists or create new one
+  let userId;
+
+  // Try to sign in first to see if user exists (admin way)
+  // Or just list users by email
+  const {
+    data: { users },
+    error: listError,
+  } = await supabaseAdmin.auth.admin.listUsers();
+
+  const existingUser = users.find((u) => u.email === email);
+
+  if (existingUser) {
+    console.log(
+      `User ${email} already exists. Using existing ID: ${existingUser.id}`
+    );
+    userId = existingUser.id;
+  } else {
+    console.log(`Creating new user: ${email}`);
+    const { data: newUser, error: createError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: "Test User" },
+      });
+
+    if (createError) {
+      console.error("Error creating user:", createError);
+      throw createError;
+    }
+    userId = newUser.user.id;
+    console.log(`Created user with ID: ${userId}`);
+  }
+
   console.log("Generating 40 dummy warranties...");
 
   const warranties = [];
@@ -94,6 +148,7 @@ async function main() {
       status: status,
       repairCost: repairCost,
       notes: "Registro generado automáticamente",
+      userId: userId, // Assign to test user
     });
   }
 
@@ -103,14 +158,15 @@ async function main() {
     });
   }
 
-  console.log("Done! 40 warranties verified.");
+  console.log("Done! 40 warranties verified and assigned to test@example.com");
 }
 
-try {
-  await main();
-  await prisma.$disconnect();
-} catch (e) {
-  console.error(e);
-  await prisma.$disconnect();
-  process.exit(1);
-}
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

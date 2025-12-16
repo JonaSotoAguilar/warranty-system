@@ -19,6 +19,7 @@ export async function getWarranties(params?: {
   limit?: number;
   search?: string;
   status?: WarrantyStatus[];
+  userId?: string;
 }): Promise<{ data: Warranty[]; total: number; page: number; limit: number }> {
   const page = params?.page || 1;
   const limit = params?.limit || 20;
@@ -26,6 +27,10 @@ export async function getWarranties(params?: {
 
   // Construir filtros
   const where: any = {};
+
+  if (params?.userId) {
+    where.userId = params.userId;
+  }
 
   if (params?.status && params.status.length > 0) {
     where.status = { in: params.status };
@@ -71,6 +76,7 @@ export async function saveWarranty(warranty: Warranty): Promise<void> {
   await prisma.warranty.create({
     data: {
       id: warranty.id,
+      userId: warranty.userId,
       invoiceNumber: warranty.invoiceNumber,
       clientName: warranty.clientName,
       rut: warranty.rut,
@@ -92,9 +98,19 @@ export async function saveWarranty(warranty: Warranty): Promise<void> {
   });
 }
 
-export async function updateWarranty(updatedWarranty: Warranty): Promise<void> {
-  await prisma.warranty.update({
-    where: { id: updatedWarranty.id },
+export async function updateWarranty(
+  updatedWarranty: Warranty,
+  userId?: string
+): Promise<void> {
+  const where: any = { id: updatedWarranty.id };
+  if (userId) {
+    where.userId = userId;
+  }
+
+  // Usamos updateMany para permitir filtrar por userId (seguridad)
+  // Aunque updateMany devuelve batchPayload, cumple el propósito de seguridad.
+  const result = await prisma.warranty.updateMany({
+    where,
     data: {
       invoiceNumber: updatedWarranty.invoiceNumber,
       clientName: updatedWarranty.clientName,
@@ -105,7 +121,6 @@ export async function updateWarranty(updatedWarranty: Warranty): Promise<void> {
       failureDescription: updatedWarranty.failureDescription,
       sku: updatedWarranty.sku,
       location: updatedWarranty.location,
-      // entryDate usually doesn't change, but we map it anyway
       entryDate: new Date(updatedWarranty.entryDate),
       deliveryDate: updatedWarranty.deliveryDate
         ? new Date(updatedWarranty.deliveryDate)
@@ -118,10 +133,26 @@ export async function updateWarranty(updatedWarranty: Warranty): Promise<void> {
       notes: updatedWarranty.notes,
     },
   });
+
+  if (result.count === 0) {
+    throw new Error("No warranty found or access denied");
+  }
 }
 
-export async function deleteWarranty(id: string): Promise<void> {
-  await prisma.warranty.delete({
-    where: { id },
+export async function deleteWarranty(
+  id: string,
+  userId?: string
+): Promise<void> {
+  const where: any = { id };
+  if (userId) {
+    where.userId = userId;
+  }
+
+  const result = await prisma.warranty.deleteMany({
+    where,
   });
+
+  if (result.count === 0) {
+    throw new Error("No warranty found or access denied");
+  }
 }
