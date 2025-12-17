@@ -101,7 +101,7 @@ El proyecto incluye configuración lista para producción usando Docker.
     docker-compose up -d --build
     ```
 
-    Esto iniciará la aplicación en el puerto **3001** en modo producción optimizado (Standalone).
+    Esto iniciará la aplicación en el puerto **3000** en modo producción optimizado (Standalone).
 
 3.  **Ver logs:**
     ```bash
