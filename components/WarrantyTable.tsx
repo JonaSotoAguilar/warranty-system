@@ -80,14 +80,30 @@ export function WarrantyTable({
         <table className="w-full text-sm text-left">
           <thead className="bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400 uppercase text-xs font-semibold">
             <tr>
-              <th className="px-4 py-3 text-center">Boleta</th>
-              <th className="px-4 py-3 text-center">Producto</th>
-              <th className="px-4 py-3">Cliente</th>
-              <th className="px-4 py-3 text-center">Ubicación</th>
-              <th className="px-4 py-3 text-center">Fecha Ingreso</th>
-              <th className="px-4 py-3 text-center">Días Hábiles</th>
-              <th className="px-4 py-3 text-center">Estado</th>
-              <th className="px-4 py-3 text-center">Acciones</th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Boleta
+              </th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Producto
+              </th>
+              <th scope="col" className="px-4 py-3">
+                Cliente
+              </th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Ubicación
+              </th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Fecha Ingreso
+              </th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Días Hábiles
+              </th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Estado
+              </th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -102,19 +118,19 @@ export function WarrantyTable({
                   key={warranty.id}
                   className="hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
                 >
-                  <td className="px-4 py-3 font-mono font-medium text-center break-all max-w-[120px]">
+                  <td className="px-4 py-3 font-mono font-medium text-center break-all max-w-30">
                     {warranty.invoiceNumber || "-"}
                   </td>
-                  <td className="px-4 py-3 text-center break-all max-w-[200px]">
+                  <td className="px-4 py-3 text-center break-all max-w-50">
                     {warranty.product}
                   </td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300 wrap-break-word max-w-[150px]">
+                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300 wrap-break-word max-w-37.5">
                     {warranty.clientName}
                   </td>
                   <td className="px-4 py-3 text-center text-zinc-500 dark:text-zinc-400 text-xs uppercase tracking-wide">
                     <div className="flex justify-center">
                       <span
-                        className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-sm break-all max-w-[140px]"
+                        className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-sm break-all max-w-35"
                         title={warranty.location}
                       >
                         {warranty.location}
@@ -141,18 +157,27 @@ export function WarrantyTable({
                       variant="ghost"
                       size="icon"
                       onClick={() => onView(warranty)}
+                      aria-label={`Ver detalles de garantía ${
+                        warranty.invoiceNumber || warranty.clientName
+                      }`}
                       title="Ver detalles"
                     >
-                      <Eye className="h-4 w-4 text-zinc-500" />
+                      <Eye
+                        className="h-4 w-4 text-zinc-500"
+                        aria-hidden="true"
+                      />
                     </Button>
                     {warranty.status !== "completed" && (
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => onEdit(warranty)}
+                        aria-label={`Editar garantía ${
+                          warranty.invoiceNumber || warranty.clientName
+                        }`}
                         title="Editar"
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     )}
                     {warranty.status !== "completed" && (
@@ -160,10 +185,13 @@ export function WarrantyTable({
                         variant="ghost"
                         size="icon"
                         onClick={() => onDelete(warranty)}
+                        aria-label={`Eliminar garantía ${
+                          warranty.invoiceNumber || warranty.clientName
+                        }`}
                         title="Eliminar"
                         className="hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     )}
                   </td>

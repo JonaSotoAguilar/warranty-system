@@ -73,7 +73,6 @@ export function WarrantyDashboard() {
       const res = await fetch(`/api/warranties?${params.toString()}`);
       if (res.ok) {
         const responseData = await res.json();
-        // Backend devuelve { data, total, page, limit }
         const data: Warranty[] = responseData.data || [];
         const total = responseData.total || 0;
 
@@ -87,7 +86,6 @@ export function WarrantyDashboard() {
     }
   }, [currentPage, searchTerm, statusFilter, locationFilter]);
 
-  // Debounce para fetch cuando cambien filtros
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchWarranties();
@@ -99,7 +97,6 @@ export function WarrantyDashboard() {
     fetchLocations();
   }, [fetchLocations]);
 
-  // Reset página al cambiar filtros (si cambia search, status o location)
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, locationFilter]);
@@ -136,11 +133,11 @@ export function WarrantyDashboard() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <main className="space-y-6">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-            <LayoutDashboard className="h-6 w-6" />
+            <LayoutDashboard className="h-6 w-6" aria-hidden="true" />
             Control de Garantías
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400">
@@ -175,12 +172,22 @@ export function WarrantyDashboard() {
             <LogOut className="mr-2 h-4 w-4" /> Salir
           </Button>
         </div>
-      </div>
+      </header>
 
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <section
+        className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between"
+        aria-label="Filtros de búsqueda y estados"
+      >
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+          <label htmlFor="dashboard-search" className="sr-only">
+            Buscar garantías
+          </label>
+          <Search
+            className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500 dark:text-zinc-400"
+            aria-hidden="true"
+          />
           <Input
+            id="dashboard-search"
             placeholder="Buscar por cliente, RUT o N° boleta..."
             className="pl-9"
             value={searchTerm}
@@ -190,11 +197,15 @@ export function WarrantyDashboard() {
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-1 shrink-0">
-              <MapPin className="h-4 w-4" /> Ubicación:
-            </span>
+            <label
+              htmlFor="location-filter"
+              className="text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-1 shrink-0"
+            >
+              <MapPin className="h-4 w-4" aria-hidden="true" /> Ubicación:
+            </label>
             <select
-              className="flex h-9 w-full sm:w-[180px] rounded-md border border-zinc-200 bg-white px-3 py-1 text-sm text-zinc-900 focus-visible:outline-none focus:ring-2 focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+              id="location-filter"
+              className="flex h-9 w-full sm:w-[11.25rem] rounded-md border border-zinc-200 bg-white px-3 py-1 text-sm text-zinc-900 focus-visible:outline-none focus:ring-2 focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
               value={locationFilter}
               onChange={(e) => setLocationFilter(e.target.value)}
             >
@@ -207,9 +218,16 @@ export function WarrantyDashboard() {
             </select>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
-            <span className="text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-1 shrink-0">
-              <Filter className="h-4 w-4" /> Estados:
+          <div
+            className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0"
+            role="group"
+            aria-labelledby="status-filter-label"
+          >
+            <span
+              id="status-filter-label"
+              className="text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-1 shrink-0"
+            >
+              <Filter className="h-4 w-4" aria-hidden="true" /> Estados:
             </span>
             {(["pending", "ready", "completed"] as WarrantyStatus[]).map(
               (status) => {
@@ -222,7 +240,9 @@ export function WarrantyDashboard() {
                 return (
                   <button
                     key={status}
+                    type="button"
                     onClick={() => toggleStatusFilter(status)}
+                    aria-pressed={isActive}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
                       isActive
                         ? "bg-zinc-900 text-zinc-50 border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
@@ -236,9 +256,12 @@ export function WarrantyDashboard() {
             )}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="relative min-h-[300px]">
+      <section
+        className="relative min-h-[18.75rem]"
+        aria-label="Lista de garantías"
+      >
         {isLoading && (
           <div className="absolute inset-0 bg-white/50 dark:bg-zinc-950/50 z-10 flex items-center justify-center backdrop-blur-sm">
             <div className="text-zinc-500 text-sm">Cargando...</div>
@@ -250,7 +273,7 @@ export function WarrantyDashboard() {
           onView={handleView}
           onDelete={(warranty) => setDeleteConfirm({ isOpen: true, warranty })}
         />
-      </div>
+      </section>
 
       <ConfirmationDialog
         isOpen={deleteConfirm.isOpen}
@@ -341,6 +364,6 @@ export function WarrantyDashboard() {
         onClose={() => setIsDetailsOpen(false)}
         warranty={viewingWarranty}
       />
-    </div>
+    </main>
   );
 }
