@@ -87,7 +87,7 @@ export function WarrantyTable({
               <th className="px-4 py-3 text-center">Fecha Ingreso</th>
               <th className="px-4 py-3 text-center">Días Transc.</th>
               <th className="px-4 py-3 text-center">Estado</th>
-              <th className="px-4 py-3 text-right">Acciones</th>
+              <th className="px-4 py-3 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -129,7 +129,7 @@ export function WarrantyTable({
                   <td className="px-4 py-3 text-center pointer-events-none">
                     {getStatusBadge(warranty.status)}
                   </td>
-                  <td className="px-4 py-3 text-right flex justify-end gap-1">
+                  <td className="px-4 py-3 text-center flex justify-center gap-1">
                     <Button
                       variant="ghost"
                       size="icon"

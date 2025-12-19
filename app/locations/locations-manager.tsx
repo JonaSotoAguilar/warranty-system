@@ -167,7 +167,7 @@ export default function LocationsManager({
               <th className="px-6 py-4 text-center">Garantías Activas</th>
               <th className="px-6 py-4 text-center">Garantías Completadas</th>
               <th className="px-6 py-4 text-center">Estado</th>
-              <th className="px-6 py-4 text-right">Acciones</th>
+              <th className="px-6 py-4 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -177,14 +177,9 @@ export default function LocationsManager({
                 className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30 transition-colors group"
               >
                 <td className="px-6 py-4">
-                  <div className="flex flex-col">
-                    <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {loc.name}
-                    </span>
-                    <span className="text-[10px] text-zinc-400">
-                      ID: {loc.id.slice(0, 8)}
-                    </span>
-                  </div>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {loc.name}
+                  </span>
                 </td>
                 <td className="px-6 py-4 text-center">
                   <Badge variant="outline" className="font-mono">
@@ -204,14 +199,14 @@ export default function LocationsManager({
                   ) : (
                     <Badge
                       variant="outline"
-                      className="bg-zinc-50 text-zinc-500"
+                      className="bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800"
                     >
                       Inactiva
                     </Badge>
                   )}
                 </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-1">
+                <td className="px-6 py-4 text-center">
+                  <div className="flex justify-center gap-1">
                     {loc.isActive ? (
                       <>
                         {loc.activeCount === 0 && loc.completedCount > 0 && (
@@ -244,13 +239,13 @@ export default function LocationsManager({
                     ) : (
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
                         onClick={() => handleToggleActive(loc.id, loc.isActive)}
                         disabled={isPending}
+                        title="Habilitar ubicación"
                       >
-                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                        Habilitar
+                        <CheckCircle2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
