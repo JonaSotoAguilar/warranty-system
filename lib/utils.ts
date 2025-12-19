@@ -55,3 +55,11 @@ export function formatChileanPhone(value: string) {
 
   return formatted;
 }
+
+export function normalizeString(str: string) {
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replaceAll(/[\u0300-\u036f]/g, "")
+    .trim();
+}

@@ -118,11 +118,15 @@ export function WarrantyTable({
                     {format(parseISO(warranty.entryDate), "dd/MM/yyyy")}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <Badge className={getDaysBadgeColor(days)}>
+                    <Badge
+                      className={`${getDaysBadgeColor(
+                        days
+                      )} pointer-events-none`}
+                    >
                       {days} días
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-center pointer-events-none">
                     {getStatusBadge(warranty.status)}
                   </td>
                   <td className="px-4 py-3 text-right flex justify-end gap-1">

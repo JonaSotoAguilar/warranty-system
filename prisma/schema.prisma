@@ -29,7 +29,7 @@ model Warranty {
   notes              String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-  userId             String?  @default(uuid())
+  userId             String
   locationLogs       LocationLog[]
 }
 
@@ -40,4 +40,15 @@ model LocationLog {
   fromLocation String
   toLocation   String
   changedAt    DateTime @default(now())
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, userId])
 }
