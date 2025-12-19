@@ -91,41 +91,28 @@ export async function getWarranties(params?: {
 }
 
 export async function saveWarranty(warranty: Warranty): Promise<void> {
-  await prisma.$transaction(async (tx) => {
-    const created = await tx.warranty.create({
-      data: {
-        id: warranty.id,
-        userId: warranty.userId,
-        invoiceNumber: warranty.invoiceNumber as any,
-        clientName: warranty.clientName,
-        rut: warranty.rut,
-        contact: warranty.contact,
-        email: warranty.email,
-        product: warranty.product,
-        failureDescription: warranty.failureDescription,
-        sku: warranty.sku,
-        locationId: warranty.locationId,
-        entryDate: new Date(warranty.entryDate),
-        deliveryDate: warranty.deliveryDate
-          ? new Date(warranty.deliveryDate)
-          : null,
-        readyDate: warranty.readyDate ? new Date(warranty.readyDate) : null,
-        status: warranty.status,
-        repairCost: warranty.repairCost,
-        notes: warranty.notes,
-      },
-    });
-
-    // Log inicial: Usamos el ID de la ubicación de destino.
-    // Como origen, al ser nuevo, usamos el mismo ID o un placeholder.
-    await (tx as any).locationLog.create({
-      data: {
-        warrantyId: created.id,
-        fromLocationId: created.locationId, // Origen = Destino en el primer log
-        toLocationId: created.locationId,
-        changedAt: created.entryDate,
-      },
-    });
+  await prisma.warranty.create({
+    data: {
+      id: warranty.id,
+      userId: warranty.userId,
+      invoiceNumber: warranty.invoiceNumber as any,
+      clientName: warranty.clientName,
+      rut: warranty.rut,
+      contact: warranty.contact,
+      email: warranty.email,
+      product: warranty.product,
+      failureDescription: warranty.failureDescription,
+      sku: warranty.sku,
+      locationId: warranty.locationId,
+      entryDate: new Date(warranty.entryDate),
+      deliveryDate: warranty.deliveryDate
+        ? new Date(warranty.deliveryDate)
+        : null,
+      readyDate: warranty.readyDate ? new Date(warranty.readyDate) : null,
+      status: warranty.status,
+      repairCost: warranty.repairCost,
+      notes: warranty.notes,
+    } as any,
   });
 }
 
@@ -178,29 +165,30 @@ export async function updateWarranty(
       status: updatedWarranty.status,
       repairCost: updatedWarranty.repairCost,
       notes: updatedWarranty.notes,
-    },
+    } as any,
   });
   operations.push(updateOp);
 
   // 3. Verificar cambio de ubicación y crear log
-  if (currentWarranty.locationId !== updatedWarranty.locationId) {
+  if (
+    (currentWarranty as any).locationId !== (updatedWarranty as any).locationId
+  ) {
     const logOp = (prisma as any).locationLog.create({
       data: {
         warrantyId: updatedWarranty.id,
-        fromLocationId: currentWarranty.locationId,
-        toLocationId: updatedWarranty.locationId,
+        fromLocationId: (currentWarranty as any).locationId,
+        toLocationId: (updatedWarranty as any).locationId,
       },
     });
     operations.push(logOp);
   }
 
-  // 4. Si pasa a completed, podríamos registrar un log final si fuera necesario,
-  // pero mantengamos la consistencia con las ubicaciones físicas.
+  // 4. Si pasa a completed, ya no generamos log automático.
   if (
     updatedWarranty.status === "completed" &&
     currentWarranty.status !== "completed"
   ) {
-    // Log opcional de entrega final si se desea rastrear por IDs
+    // Ya no se crea log aquí
   }
 
   // Ejecutar transacción

@@ -251,6 +251,7 @@ export function WarrantyModal({
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
+                maxLength={320}
               />
             </label>
           </div>

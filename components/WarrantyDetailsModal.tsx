@@ -58,10 +58,14 @@ export function WarrantyDetailsModal({
     >
       <div className="space-y-4 text-sm mt-4">
         <div className="grid grid-cols-2 gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-4">
-          <div>
+          <div className="min-w-0">
             <p className="text-zinc-500 dark:text-zinc-400 text-xs">Cliente</p>
-            <p className="font-medium text-lg">{warranty.clientName}</p>
-            {warranty.rut && <p className="text-zinc-500">{warranty.rut}</p>}
+            <p className="font-medium text-lg break-all">
+              {warranty.clientName}
+            </p>
+            {warranty.rut && (
+              <p className="text-zinc-500 font-mono text-xs">{warranty.rut}</p>
+            )}
           </div>
           <div className="text-right">
             <p className="text-zinc-500 dark:text-zinc-400 text-xs">Estado</p>
@@ -70,30 +74,36 @@ export function WarrantyDetailsModal({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
+          <div className="min-w-0">
             <p className="text-zinc-500 dark:text-zinc-400 text-xs">Producto</p>
-            <p className="font-medium">{warranty.product}</p>
+            <p className="font-medium break-all">{warranty.product}</p>
             {warranty.sku && (
-              <p className="text-xs text-zinc-500">SKU: {warranty.sku}</p>
+              <p className="text-xs text-zinc-500 break-all">
+                SKU: {warranty.sku}
+              </p>
             )}
             {warranty.failureDescription && (
               <div className="mt-2 text-xs">
                 <span className="font-semibold text-zinc-500 dark:text-zinc-400">
                   Falla reportada:
                 </span>
-                <p className="text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800/50 p-1.5 rounded mt-0.5">
+                <p className="text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800/50 p-1.5 rounded mt-0.5 wrap-break-word">
                   {warranty.failureDescription}
                 </p>
               </div>
             )}
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-zinc-500 dark:text-zinc-400 text-xs">Contacto</p>
             <div className="flex flex-col">
               {warranty.email && (
-                <span className="truncate">{warranty.email}</span>
+                <span className="break-all" title={warranty.email}>
+                  {warranty.email}
+                </span>
               )}
-              {warranty.contact && <span>{warranty.contact}</span>}
+              {warranty.contact && (
+                <span className="break-all">{warranty.contact}</span>
+              )}
               {!warranty.email && !warranty.contact && (
                 <span className="italic text-zinc-400">No registrado</span>
               )}
@@ -152,11 +162,11 @@ export function WarrantyDetailsModal({
         )}
 
         {warranty.notes && (
-          <div>
+          <div className="min-w-0">
             <p className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">
               Notas
             </p>
-            <div className="p-3 bg-zinc-100 dark:bg-zinc-900 rounded-md text-zinc-700 dark:text-zinc-300 italic">
+            <div className="p-3 bg-zinc-100 dark:bg-zinc-900 rounded-md text-zinc-700 dark:text-zinc-300 italic wrap-break-word overflow-hidden">
               "{warranty.notes}"
             </div>
           </div>
