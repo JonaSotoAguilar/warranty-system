@@ -170,7 +170,7 @@ export function WarrantyDashboard() {
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500 dark:text-zinc-400" />
           <Input
-            placeholder="Buscar por cliente o N° boleta..."
+            placeholder="Buscar por cliente, RUT o N° boleta..."
             className="pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}

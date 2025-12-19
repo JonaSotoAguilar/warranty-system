@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 // Force recompile
 import { Warranty, WarrantyStatus } from "./types";
+import { formatRut } from "./utils";
 
 // Helper to convert Prisma result to Warranty type (Dates to strings)
 function mapToWarranty(item: any): Warranty {
@@ -54,12 +55,22 @@ export async function getWarranties(params?: {
   // Para search real, normalmente se usa un índice FullText o similar.
   if (params?.search) {
     const search = params.search;
-    // Búsqueda simple OR en varios campos
-    where.OR = [
-      { clientName: { contains: search } },
-      { product: { contains: search } },
-      { invoiceNumber: { contains: search } },
+    const rutFormatted = formatRut(search);
+
+    const conditions: any[] = [
+      { clientName: { contains: search, mode: "insensitive" } },
+      { product: { contains: search, mode: "insensitive" } },
+      { invoiceNumber: { contains: search, mode: "insensitive" } },
+      { rut: { contains: search, mode: "insensitive" } },
     ];
+
+    // Si el término de búsqueda parece un RUT y al formatearlo es distinto al original,
+    // agregamos la versión formateada a la búsqueda.
+    if (rutFormatted && rutFormatted !== search) {
+      conditions.push({ rut: { contains: rutFormatted, mode: "insensitive" } });
+    }
+
+    where.OR = conditions;
   }
 
   const [items, total] = await Promise.all([
