@@ -25,9 +25,9 @@ type LocationType = {
 
 export default function LocationsManager({
   locations,
-}: {
+}: Readonly<{
   locations: LocationType[];
-}) {
+}>) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newLocationName, setNewLocationName] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -134,6 +134,7 @@ export default function LocationsManager({
                 onChange={(e) => setNewLocationName(e.target.value)}
                 placeholder="Ej: Taller, Bodega, Recepción"
                 disabled={isPending}
+                maxLength={50}
                 className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
               />
               {error && <p className="text-sm text-red-500">{error}</p>}
