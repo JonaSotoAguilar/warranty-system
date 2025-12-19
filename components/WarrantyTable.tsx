@@ -85,7 +85,7 @@ export function WarrantyTable({
               <th className="px-4 py-3">Cliente</th>
               <th className="px-4 py-3 text-center">Ubicación</th>
               <th className="px-4 py-3 text-center">Fecha Ingreso</th>
-              <th className="px-4 py-3 text-center">Días Transc.</th>
+              <th className="px-4 py-3 text-center">Días Hábiles</th>
               <th className="px-4 py-3 text-center">Estado</th>
               <th className="px-4 py-3 text-center">Acciones</th>
             </tr>
