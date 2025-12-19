@@ -189,7 +189,7 @@ export function WarrantyDashboard() {
             >
               <option value="">Todas las ubicaciones</option>
               {locations.map((loc) => (
-                <option key={loc.id} value={loc.name}>
+                <option key={loc.id} value={loc.id}>
                   {loc.name} {!loc.isActive && "(Inactiva)"}
                 </option>
               ))}
@@ -309,7 +309,7 @@ export function WarrantyDashboard() {
         warrantyToEdit={editingWarranty}
         availableLocations={locations
           .filter((l) => l.isActive)
-          .map((l) => l.name)}
+          .map((l) => ({ id: l.id, name: l.name }))}
         onSuccess={() => {
           fetchWarranties();
         }}

@@ -12,7 +12,7 @@ interface WarrantyModalProps {
   onClose: () => void;
   onSuccess: () => void;
   warrantyToEdit?: Warranty | null;
-  availableLocations: string[];
+  availableLocations: { id: string; name: string }[];
 }
 
 export function WarrantyModal({
@@ -45,7 +45,7 @@ export function WarrantyModal({
         clientName: "",
         product: "",
         failureDescription: "",
-        location: LOCATIONS.length > 0 ? LOCATIONS[0] : "",
+        locationId: LOCATIONS.length > 0 ? LOCATIONS[0].id : "",
         repairCost: 0,
         invoiceNumber: undefined,
         status: "pending",
@@ -303,9 +303,9 @@ export function WarrantyModal({
               disabled={isLocked}
               required
               className="flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus-visible:outline-none focus:ring-2 focus:ring-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 disabled:opacity-50"
-              value={formData.location ?? ""}
+              value={formData.locationId ?? ""}
               onChange={(e) =>
-                setFormData({ ...formData, location: e.target.value })
+                setFormData({ ...formData, locationId: e.target.value })
               }
             >
               <option value="" disabled>
@@ -314,13 +314,17 @@ export function WarrantyModal({
                   : "Sin ubicaciones creadas"}
               </option>
               {LOCATIONS.map((loc) => (
-                <option key={loc} value={loc}>
-                  {loc}
+                <option key={loc.id} value={loc.id}>
+                  {loc.name}
                 </option>
               ))}
-              {formData.location && !LOCATIONS.includes(formData.location) && (
-                <option value={formData.location}>{formData.location}</option>
-              )}
+              {/* Manejo de ubicación histórica si ya no está en availableLocations */}
+              {formData.locationId &&
+                !LOCATIONS.some((l) => l.id === formData.locationId) && (
+                  <option value={formData.locationId}>
+                    {formData.location || "Ubicación anterior"}
+                  </option>
+                )}
             </select>
           </label>
 

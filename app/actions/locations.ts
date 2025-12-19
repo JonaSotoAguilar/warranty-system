@@ -33,14 +33,14 @@ export async function getLocations(onlyActive = false) {
           prisma.warranty.count({
             where: {
               userId: user.id,
-              location: loc.name,
+              locationId: loc.id,
               status: { in: ["pending", "ready"] },
             },
           }),
           prisma.warranty.count({
             where: {
               userId: user.id,
-              location: loc.name,
+              locationId: loc.id,
               status: "completed",
             },
           }),
@@ -154,7 +154,7 @@ export async function deleteLocation(id: string, name: string) {
     const activeCount = await prisma.warranty.count({
       where: {
         userId: user.id,
-        location: name,
+        locationId: id,
         status: { in: ["pending", "ready"] },
       },
     });
@@ -162,7 +162,7 @@ export async function deleteLocation(id: string, name: string) {
     const completedCount = await prisma.warranty.count({
       where: {
         userId: user.id,
-        location: name,
+        locationId: id,
         status: "completed",
       },
     });

@@ -17,7 +17,8 @@ model Warranty {
   product            String
   failureDescription String?
   sku                String?
-  location           String        @default("Ingreso")
+  locationId         String
+  location           Location      @relation(fields: [locationId], references: [id])
   entryDate          DateTime      @default(now())
   deliveryDate       DateTime?
   readyDate          DateTime?
@@ -31,21 +32,26 @@ model Warranty {
 }
 
 model LocationLog {
-  id           String   @id @default(uuid())
-  warrantyId   String
-  fromLocation String
-  toLocation   String
-  changedAt    DateTime @default(now())
-  warranty     Warranty @relation(fields: [warrantyId], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid())
+  warrantyId     String
+  fromLocationId String
+  toLocationId   String
+  changedAt      DateTime @default(now())
+  warranty       Warranty @relation(fields: [warrantyId], references: [id], onDelete: Cascade)
+  fromLocation   Location @relation("FromLocation", fields: [fromLocationId], references: [id])
+  toLocation     Location @relation("ToLocation", fields: [toLocationId], references: [id])
 }
 
 model Location {
-  id        String   @id @default(uuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isActive  Boolean  @default(true)
-  userId    String
+  id               String        @id @default(uuid())
+  name             String
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  isActive         Boolean       @default(true)
+  userId           String
+  warranties       Warranty[]
+  fromLocationLogs LocationLog[] @relation("FromLocation")
+  toLocationLogs   LocationLog[] @relation("ToLocation")
 
   @@unique([name, userId])
 }

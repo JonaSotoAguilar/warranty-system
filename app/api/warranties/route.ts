@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       product: body.product,
       failureDescription: body.failureDescription,
       sku: body.sku,
-      location: body.location || "Ingresada",
+      locationId: body.locationId,
       entryDate: body.entryDate || new Date().toISOString(),
       deliveryDate: body.deliveryDate,
       readyDate: body.readyDate,
