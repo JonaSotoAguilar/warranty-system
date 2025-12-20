@@ -76,9 +76,15 @@ async function main() {
     });
   }
 
-  console.log("Generating 40 dummy warranties...");
+  // Map locations by name to get their IDs
+  const locationRecords = await prisma.location.findMany({
+    where: { userId: DUMMY_USER_ID },
+  });
+  const locationMap = Object.fromEntries(
+    locationRecords.map((l) => [l.name, l.id])
+  );
 
-  const warranties = [];
+  console.log("Generating 40 dummy warranties...");
 
   for (let i = 0; i < 40; i++) {
     const status = randomItem(STATUSES);
@@ -100,32 +106,30 @@ async function main() {
       deliveryDate.setDate(deliveryDate.getDate() + randomInt(1, 5));
     }
 
-    warranties.push({
-      userId: DUMMY_USER_ID,
-      invoiceNumber: randomInt(1000, 9999).toString(),
-      clientName: randomItem(CLIENT_NAMES),
-      rut: `${randomInt(10, 20)}.${randomInt(100, 999)}.${randomInt(
-        100,
-        999
-      )}-${randomInt(0, 9)}`,
-      contact: `+56 9 ${randomInt(1000, 9999)} ${randomInt(1000, 9999)}`,
-      email: `cliente${i}@example.com`,
-      product: randomItem(PRODUCTS),
-      failureDescription: "Falla generada aleatoriamente para pruebas.",
-      sku: `SKU-${randomInt(100, 999)}`,
-      location: status === "completed" ? "Cliente" : randomItem(LOCATIONS),
-      entryDate: entryDate,
-      readyDate: readyDate,
-      deliveryDate: deliveryDate,
-      status: status,
-      repairCost: repairCost,
-      notes: "Registro generado automáticamente",
-    });
-  }
+    const locName = status === "completed" ? "Cliente" : randomItem(LOCATIONS);
 
-  for (const w of warranties) {
     await prisma.warranty.create({
-      data: w,
+      data: {
+        userId: DUMMY_USER_ID,
+        invoiceNumber: randomInt(1000, 9999).toString(),
+        clientName: randomItem(CLIENT_NAMES),
+        rut: `${randomInt(10, 20)}.${randomInt(100, 999)}.${randomInt(
+          100,
+          999
+        )}-${randomInt(0, 9)}`,
+        contact: `+56 9 ${randomInt(1000, 9999)} ${randomInt(1000, 9999)}`,
+        email: `cliente${i}@example.com`,
+        product: randomItem(PRODUCTS),
+        failureDescription: "Falla generada aleatoriamente para pruebas.",
+        sku: `SKU-${randomInt(100, 999)}`,
+        locationId: locationMap[locName],
+        entryDate: entryDate,
+        readyDate: readyDate,
+        deliveryDate: deliveryDate,
+        status: status,
+        repairCost: repairCost,
+        notes: "Registro generado automáticamente",
+      },
     });
   }
 
