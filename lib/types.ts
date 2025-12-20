@@ -10,23 +10,26 @@ export interface Warranty {
   rut?: string;
   contact?: string; // Obligatorio en UI
   email?: string;
-  location: string;
+  locationId: string;
+  location?: string; // Nombre de la ubicación (vía join)
   entryDate: string; // ISO Date string
   deliveryDate?: string; // ISO Date string (Fecha de entrega/completada)
   readyDate?: string; // ISO Date string (Fecha en que estuvo lista)
   status: WarrantyStatus;
   repairCost?: number;
   notes?: string;
-  userId?: string;
+  userId: string;
   locationLogs?: LocationLog[];
 }
 
 export interface LocationLog {
   id: string;
   warrantyId: string;
-  fromLocation: string;
-  toLocation: string;
+  fromLocationId: string;
+  toLocationId: string;
   changedAt: string; // ISO Date
+  fromLocation?: string; // Nombre opcional
+  toLocation?: string; // Nombre opcional
 }
 
 export type NewWarrantyPayload = Omit<Warranty, "id" | "status"> & {

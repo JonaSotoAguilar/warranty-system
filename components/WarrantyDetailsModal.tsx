@@ -5,6 +5,7 @@ import { Warranty } from "@/lib/types";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { Badge } from "./ui/badge";
+import { formatCurrency } from "@/lib/utils";
 
 interface WarrantyDetailsModalProps {
   isOpen: boolean;
@@ -22,23 +23,25 @@ export function WarrantyDetailsModal({
   const formatDate = (date: string) =>
     format(parseISO(date), "dd MMM yyyy HH:mm", { locale: es });
 
-  const getBadgeVariant = (status: Warranty["status"]) => {
-    if (status === "ready") return "success";
-    if (status === "completed") return "default";
-    return "secondary";
-  };
-
-  const getBadgeLabel = (status: Warranty["status"]) => {
-    if (status === "pending") return "Pendiente";
-    if (status === "ready") return "Lista";
-    return "Completada";
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-CL", {
-      style: "currency",
-      currency: "CLP",
-    }).format(amount);
+  const getStatusBadge = (status: Warranty["status"]) => {
+    switch (status) {
+      case "ready":
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:text-white">
+            Lista
+          </Badge>
+        );
+      case "pending":
+        return <Badge variant="warning">Pendiente</Badge>;
+      case "completed":
+        return (
+          <Badge className="bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-800 dark:text-emerald-100">
+            Completada
+          </Badge>
+        );
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
   };
 
   return (
@@ -47,52 +50,61 @@ export function WarrantyDetailsModal({
       onClose={onClose}
       title={`Detalles Garantía #${warranty.invoiceNumber || "S/N"}`}
     >
-      <div className="space-y-4 text-sm mt-4">
+      <div className="space-y-4 text-sm">
         <div className="grid grid-cols-2 gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-4">
-          <div>
+          <div className="min-w-0">
             <p className="text-zinc-500 dark:text-zinc-400 text-xs">Cliente</p>
-            <p className="font-medium text-lg">{warranty.clientName}</p>
-            {warranty.rut && <p className="text-zinc-500">{warranty.rut}</p>}
+            <p className="font-medium text-lg break-all">
+              {warranty.clientName}
+            </p>
+            {warranty.rut && (
+              <p className="text-zinc-500 font-mono text-xs">{warranty.rut}</p>
+            )}
           </div>
           <div className="text-right">
             <p className="text-zinc-500 dark:text-zinc-400 text-xs">Estado</p>
-            <Badge variant={getBadgeVariant(warranty.status)}>
-              {getBadgeLabel(warranty.status)}
-            </Badge>
+            {getStatusBadge(warranty.status)}
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
+          <div className="min-w-0">
             <p className="text-zinc-500 dark:text-zinc-400 text-xs">Producto</p>
-            <p className="font-medium">{warranty.product}</p>
+            <p className="font-medium break-all">{warranty.product}</p>
             {warranty.sku && (
-              <p className="text-xs text-zinc-500">SKU: {warranty.sku}</p>
-            )}
-            {warranty.failureDescription && (
-              <div className="mt-2 text-xs">
-                <span className="font-semibold text-zinc-500 dark:text-zinc-400">
-                  Falla reportada:
-                </span>
-                <p className="text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800/50 p-1.5 rounded mt-0.5">
-                  {warranty.failureDescription}
-                </p>
-              </div>
+              <p className="text-xs text-zinc-500 break-all">
+                SKU: {warranty.sku}
+              </p>
             )}
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-zinc-500 dark:text-zinc-400 text-xs">Contacto</p>
             <div className="flex flex-col">
               {warranty.email && (
-                <span className="truncate">{warranty.email}</span>
+                <span className="break-all" title={warranty.email}>
+                  {warranty.email}
+                </span>
               )}
-              {warranty.contact && <span>{warranty.contact}</span>}
+              {warranty.contact && (
+                <span className="break-all">{warranty.contact}</span>
+              )}
               {!warranty.email && !warranty.contact && (
                 <span className="italic text-zinc-400">No registrado</span>
               )}
             </div>
           </div>
         </div>
+
+        {warranty.failureDescription && (
+          <div className="text-xs">
+            <p className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">
+              Falla reportada
+            </p>
+            <p className="text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded wrap-break-word">
+              {warranty.failureDescription}
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4 bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-md">
           <div>
@@ -145,11 +157,11 @@ export function WarrantyDetailsModal({
         )}
 
         {warranty.notes && (
-          <div>
+          <div className="min-w-0">
             <p className="text-zinc-500 dark:text-zinc-400 text-xs mb-1">
               Notas
             </p>
-            <div className="p-3 bg-zinc-100 dark:bg-zinc-900 rounded-md text-zinc-700 dark:text-zinc-300 italic">
+            <div className="p-3 bg-zinc-100 dark:bg-zinc-900 rounded-md text-zinc-700 dark:text-zinc-300 italic wrap-break-word overflow-hidden">
               "{warranty.notes}"
             </div>
           </div>

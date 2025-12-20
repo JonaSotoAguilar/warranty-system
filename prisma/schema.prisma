@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -11,7 +8,7 @@ datasource db {
 }
 
 model Warranty {
-  id                 String   @id @default(uuid())
+  id                 String        @id @default(uuid())
   invoiceNumber      String?
   clientName         String
   rut                String?
@@ -20,24 +17,41 @@ model Warranty {
   product            String
   failureDescription String?
   sku                String?
-  location           String   @default("Ingreso")
-  entryDate          DateTime @default(now())
+  locationId         String
+  location           Location      @relation(fields: [locationId], references: [id])
+  entryDate          DateTime      @default(now())
   deliveryDate       DateTime?
   readyDate          DateTime?
-  status             String   @default("pending") // pending, ready, completed
-  repairCost         Int?     @default(0)
+  status             String        @default("pending")
+  repairCost         Int?          @default(0)
   notes              String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  userId             String?  @default(uuid())
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  userId             String
   locationLogs       LocationLog[]
 }
 
 model LocationLog {
-  id           String   @id @default(uuid())
-  warrantyId   String
-  warranty     Warranty @relation(fields: [warrantyId], references: [id], onDelete: Cascade)
-  fromLocation String
-  toLocation   String
-  changedAt    DateTime @default(now())
+  id             String   @id @default(uuid())
+  warrantyId     String
+  fromLocationId String
+  toLocationId   String
+  changedAt      DateTime @default(now())
+  warranty       Warranty @relation(fields: [warrantyId], references: [id], onDelete: Cascade)
+  fromLocation   Location @relation("FromLocation", fields: [fromLocationId], references: [id])
+  toLocation     Location @relation("ToLocation", fields: [toLocationId], references: [id])
+}
+
+model Location {
+  id               String        @id @default(uuid())
+  name             String
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  isActive         Boolean       @default(true)
+  userId           String
+  warranties       Warranty[]
+  fromLocationLogs LocationLog[] @relation("FromLocation")
+  toLocationLogs   LocationLog[] @relation("ToLocation")
+
+  @@unique([name, userId])
 }

@@ -23,7 +23,7 @@ export function WarrantyTable({
     switch (status) {
       case "ready":
         return (
-          <Badge className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:text-white">
+          <Badge className="bg-green-500 dark:bg-green-600 dark:text-white">
             Lista
           </Badge>
         );
@@ -31,7 +31,7 @@ export function WarrantyTable({
         return <Badge variant="warning">Pendiente</Badge>;
       case "completed":
         return (
-          <Badge className="bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-800 dark:text-emerald-100">
+          <Badge className="bg-emerald-700 dark:bg-emerald-800 dark:text-emerald-100">
             Completada
           </Badge>
         );
@@ -60,10 +60,10 @@ export function WarrantyTable({
 
   const getDaysBadgeColor = (days: number) => {
     if (days >= 15)
-      return "bg-red-500 text-white hover:bg-red-600 dark:bg-red-900 dark:text-red-100";
+      return "bg-red-500 text-white dark:bg-red-900 dark:text-red-100";
     if (days >= 10)
-      return "bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-800 dark:text-orange-100";
-    return "bg-green-500 text-white hover:bg-green-600 dark:bg-green-700 dark:text-green-100";
+      return "bg-yellow-500 text-black dark:bg-yellow-600 dark:text-white";
+    return "bg-green-500 text-white dark:bg-green-700 dark:text-green-100";
   };
 
   if (warranties.length === 0) {
@@ -80,14 +80,30 @@ export function WarrantyTable({
         <table className="w-full text-sm text-left">
           <thead className="bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400 uppercase text-xs font-semibold">
             <tr>
-              <th className="px-4 py-3">Boleta</th>
-              <th className="px-4 py-3">Producto</th>
-              <th className="px-4 py-3">Cliente</th>
-              <th className="px-4 py-3">Ubicación</th>
-              <th className="px-4 py-3 text-center">Fecha Ingreso</th>
-              <th className="px-4 py-3 text-center">Días Transc.</th>
-              <th className="px-4 py-3 text-center">Estado</th>
-              <th className="px-4 py-3 text-right">Acciones</th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Boleta
+              </th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Producto
+              </th>
+              <th scope="col" className="px-4 py-3">
+                Cliente
+              </th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Ubicación
+              </th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Fecha Ingreso
+              </th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Días Hábiles
+              </th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Estado
+              </th>
+              <th scope="col" className="px-4 py-3 text-center">
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -102,55 +118,82 @@ export function WarrantyTable({
                   key={warranty.id}
                   className="hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
                 >
-                  <td className="px-4 py-3 font-mono font-medium">
+                  <td className="px-4 py-3 font-mono font-medium text-center break-all max-w-30">
                     {warranty.invoiceNumber || "-"}
                   </td>
-                  <td className="px-4 py-3">{warranty.product}</td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">
+                  <td className="px-4 py-3 text-center break-all max-w-50">
+                    {warranty.product}
+                  </td>
+                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300 wrap-break-word max-w-37.5">
                     {warranty.clientName}
                   </td>
-                  <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400 text-xs uppercase tracking-wide">
-                    <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-sm">
-                      {warranty.location}
-                    </span>
+                  <td className="px-4 py-3 text-center text-zinc-500 dark:text-zinc-400 text-xs uppercase tracking-wide">
+                    <div className="flex justify-center">
+                      <span
+                        className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-sm break-all max-w-35"
+                        title={warranty.location}
+                      >
+                        {warranty.location}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-center text-zinc-600 dark:text-zinc-400">
                     {format(parseISO(warranty.entryDate), "dd/MM/yyyy")}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <Badge className={getDaysBadgeColor(days)}>
+                    <Badge
+                      className={`${getDaysBadgeColor(
+                        days
+                      )} pointer-events-none`}
+                    >
                       {days} días
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-center pointer-events-none">
                     {getStatusBadge(warranty.status)}
                   </td>
-                  <td className="px-4 py-3 text-right flex justify-end gap-1">
+                  <td className="px-4 py-3 text-center flex justify-center gap-1">
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => onView(warranty)}
+                      aria-label={`Ver detalles de garantía ${
+                        warranty.invoiceNumber || warranty.clientName
+                      }`}
                       title="Ver detalles"
                     >
-                      <Eye className="h-4 w-4 text-zinc-500" />
+                      <Eye
+                        className="h-4 w-4 text-zinc-500"
+                        aria-hidden="true"
+                      />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEdit(warranty)}
-                      title="Editar"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(warranty)}
-                      title="Eliminar"
-                      className="hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {warranty.status !== "completed" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEdit(warranty)}
+                        aria-label={`Editar garantía ${
+                          warranty.invoiceNumber || warranty.clientName
+                        }`}
+                        title="Editar"
+                      >
+                        <Pencil className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                    )}
+                    {warranty.status !== "completed" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDelete(warranty)}
+                        aria-label={`Eliminar garantía ${
+                          warranty.invoiceNumber || warranty.clientName
+                        }`}
+                        title="Eliminar"
+                        className="hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                    )}
                   </td>
                 </tr>
               );

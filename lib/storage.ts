@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/prisma";
 // Force recompile
 import { Warranty, WarrantyStatus } from "./types";
+// Removed formatRut from utils as it's no longer needed for search logic here
 
 // Helper to convert Prisma result to Warranty type (Dates to strings)
 function mapToWarranty(item: any): Warranty {
   return {
     ...item,
+    location: item.location?.name || "Sin ubicación",
     entryDate: item.entryDate.toISOString(),
     deliveryDate: item.deliveryDate
       ? item.deliveryDate.toISOString()
@@ -14,6 +16,8 @@ function mapToWarranty(item: any): Warranty {
     status: item.status as WarrantyStatus,
     locationLogs: item.locationLogs?.map((log: any) => ({
       ...log,
+      fromLocation: log.fromLocation?.name || "Desconocido",
+      toLocation: log.toLocation?.name || "Desconocido",
       changedAt: log.changedAt.toISOString(),
     })),
   };
@@ -24,6 +28,7 @@ export async function getWarranties(params?: {
   limit?: number;
   search?: string;
   status?: WarrantyStatus[];
+  location?: string;
   userId?: string;
 }): Promise<{ data: Warranty[]; total: number; page: number; limit: number }> {
   const page = params?.page || 1;
@@ -41,16 +46,23 @@ export async function getWarranties(params?: {
     where.status = { in: params.status };
   }
 
+  if (params?.location) {
+    // Si se pasa un string que parece ID, lo usamos, si no buscamos por nombre
+    where.locationId = params.location;
+  }
+
   // Nota: La búsqueda difusa en Prisma SQLite es limitada, pero intentaremos algo básico.
   // Para search real, normalmente se usa un índice FullText o similar.
   if (params?.search) {
     const search = params.search;
-    // Búsqueda simple OR en varios campos
-    where.OR = [
-      { clientName: { contains: search } },
-      { product: { contains: search } },
-      { invoiceNumber: { contains: search } },
+
+    const conditions: any[] = [
+      { clientName: { startsWith: search, mode: "insensitive" } },
+      { invoiceNumber: { startsWith: search, mode: "insensitive" } },
+      { rut: { startsWith: search, mode: "insensitive" } },
     ];
+
+    where.OR = conditions;
   }
 
   const [items, total] = await Promise.all([
@@ -60,7 +72,12 @@ export async function getWarranties(params?: {
       take: limit,
       orderBy: { entryDate: "desc" },
       include: {
+        location: true,
         locationLogs: {
+          include: {
+            fromLocation: true,
+            toLocation: true,
+          },
           orderBy: { changedAt: "desc" },
         },
       },
@@ -77,46 +94,28 @@ export async function getWarranties(params?: {
 }
 
 export async function saveWarranty(warranty: Warranty): Promise<void> {
-  // Usar transacción para crear garantía y log inicial
-  await prisma.$transaction(async (tx) => {
-    // 1. Crear Garantía
-    const created = await tx.warranty.create({
-      data: {
-        id: warranty.id,
-        userId: warranty.userId,
-        invoiceNumber: warranty.invoiceNumber as any,
-        clientName: warranty.clientName,
-        rut: warranty.rut,
-        contact: warranty.contact,
-        email: warranty.email,
-        product: warranty.product,
-        failureDescription: warranty.failureDescription,
-        sku: warranty.sku,
-        location: warranty.location,
-        entryDate: new Date(warranty.entryDate),
-        deliveryDate: warranty.deliveryDate
-          ? new Date(warranty.deliveryDate)
-          : null,
-        readyDate: warranty.readyDate ? new Date(warranty.readyDate) : null,
-        status: warranty.status,
-        repairCost: warranty.repairCost,
-        notes: warranty.notes,
-      },
-    });
-
-    // 2. Crear Log Inicial (Recepcion -> Ubicación Inicial)
-    // Asumimos "Recepcion" como el punto de origen del sistema antes de asignarse a una ubicación física.
-    // Si la ubicación inicial es "Recepcion", el log será "Ingreso -> Recepcion" para más claridad.
-    const initialOrigin = "Ingreso";
-
-    await (tx as any).locationLog.create({
-      data: {
-        warrantyId: created.id,
-        fromLocation: initialOrigin,
-        toLocation: created.location,
-        changedAt: created.entryDate, // Usar la misma fecha de ingreso
-      },
-    });
+  await prisma.warranty.create({
+    data: {
+      id: warranty.id,
+      userId: warranty.userId,
+      invoiceNumber: warranty.invoiceNumber as any,
+      clientName: warranty.clientName,
+      rut: warranty.rut,
+      contact: warranty.contact,
+      email: warranty.email,
+      product: warranty.product,
+      failureDescription: warranty.failureDescription,
+      sku: warranty.sku,
+      locationId: warranty.locationId,
+      entryDate: new Date(warranty.entryDate),
+      deliveryDate: warranty.deliveryDate
+        ? new Date(warranty.deliveryDate)
+        : null,
+      readyDate: warranty.readyDate ? new Date(warranty.readyDate) : null,
+      status: warranty.status,
+      repairCost: warranty.repairCost,
+      notes: warranty.notes,
+    } as any,
   });
 }
 
@@ -138,6 +137,11 @@ export async function updateWarranty(
     throw new Error("No warranty found or access denied");
   }
 
+  // Block modification if completed
+  if (currentWarranty.status === "completed") {
+    throw new Error("Cannot modify a completed warranty");
+  }
+
   // 2. Preparar operaciones en transacción
   const operations: any[] = [];
 
@@ -153,7 +157,7 @@ export async function updateWarranty(
       product: updatedWarranty.product,
       failureDescription: updatedWarranty.failureDescription,
       sku: updatedWarranty.sku,
-      location: updatedWarranty.location,
+      locationId: updatedWarranty.locationId,
       entryDate: new Date(updatedWarranty.entryDate),
       deliveryDate: updatedWarranty.deliveryDate
         ? new Date(updatedWarranty.deliveryDate)
@@ -164,39 +168,30 @@ export async function updateWarranty(
       status: updatedWarranty.status,
       repairCost: updatedWarranty.repairCost,
       notes: updatedWarranty.notes,
-    },
+    } as any,
   });
   operations.push(updateOp);
 
   // 3. Verificar cambio de ubicación y crear log
-  if (currentWarranty.location !== updatedWarranty.location) {
+  if (
+    (currentWarranty as any).locationId !== (updatedWarranty as any).locationId
+  ) {
     const logOp = (prisma as any).locationLog.create({
       data: {
         warrantyId: updatedWarranty.id,
-        fromLocation: currentWarranty.location,
-        toLocation: updatedWarranty.location,
+        fromLocationId: (currentWarranty as any).locationId,
+        toLocationId: (updatedWarranty as any).locationId,
       },
     });
     operations.push(logOp);
   }
 
-  // 4. Verificar cambio a estado "completed" (Entregada)
-  // Si pasa a completed y NO se registró ya un cambio de ubicación a algo como "Entregado/Cliente"
-  // forzamos un log que indique la entrega.
+  // 4. Si pasa a completed, ya no generamos log automático.
   if (
     updatedWarranty.status === "completed" &&
     currentWarranty.status !== "completed"
   ) {
-    // Solo si no acabamos de registrar un movimiento hacia "Cliente" o "Entregada" explícito
-    // (Aunque en este sistema la ubicación y el estado son ortogonales, asumimos que "completed" implica entrega al cliente)
-    const logOp = (prisma as any).locationLog.create({
-      data: {
-        warrantyId: updatedWarranty.id,
-        fromLocation: updatedWarranty.location, // Sale de la ubicación donde estaba
-        toLocation: "Entregada",
-      },
-    });
-    operations.push(logOp);
+    // Ya no se crea log aquí
   }
 
   // Ejecutar transacción
