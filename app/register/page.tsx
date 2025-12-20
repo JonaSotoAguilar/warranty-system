@@ -4,7 +4,7 @@ import { signup } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ShieldCheck,
@@ -16,7 +16,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 
-export default function RegisterPage() {
+function RegisterContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   const [password, setPassword] = useState("");
@@ -76,7 +76,7 @@ export default function RegisterPage() {
         <div className="group relative">
           <div className="absolute -inset-1 rounded-2xl bg-linear-to-r from-zinc-200 to-zinc-100 dark:from-zinc-800 dark:to-zinc-900 opacity-25 blur transition duration-1000 group-hover:opacity-100 group-hover:duration-200"></div>
 
-          <div className="relative rounded-2xl bg-white dark:bg-zinc-900 p-8 shadow-2xl border border-zinc-200 dark:border-zinc-800 backdrop-blur-xl">
+          <div className="relative rounded-2xl bg-white dark:bg-zinc-900 p-8 shadow-2xl border border-zinc-200 dark:border-zinc-800 backdrop-blur-2xl">
             <form action={handleAction} className="space-y-5">
               <div className="space-y-1.5">
                 <label
@@ -246,5 +246,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterContent />
+    </Suspense>
   );
 }
