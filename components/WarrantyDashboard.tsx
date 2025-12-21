@@ -1,7 +1,5 @@
 "use client";
 
-import { signout } from "@/app/auth/actions";
-
 import { useEffect, useState, useCallback } from "react";
 import { getLocations } from "@/app/actions/locations";
 import { Warranty, WarrantyStatus } from "@/lib/types";
@@ -166,8 +164,10 @@ export function WarrantyDashboard() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => signout()}
-            className="bg-white text-zinc-950 hover:bg-zinc-100 border-zinc-200 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200 ml-auto sm:ml-0"
+            onClick={() => {
+              globalThis.location.href = "/akprox/auth/logout";
+            }}
+            className="bg-zinc-100 text-zinc-950 hover:bg-zinc-200 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800 dark:border-zinc-800 ml-auto sm:ml-0"
           >
             <LogOut className="mr-2 h-4 w-4" /> Salir
           </Button>

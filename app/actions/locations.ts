@@ -2,14 +2,11 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/auth";
 import { normalizeString } from "@/lib/utils";
 
 export async function getLocations(onlyActive = false) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   if (!user) {
     return { error: "No autenticado" };
@@ -70,10 +67,7 @@ export async function getLocations(onlyActive = false) {
 }
 
 export async function createLocation(prevState: any, formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   if (!user) {
     return { error: "No autenticado" };
@@ -116,10 +110,7 @@ export async function createLocation(prevState: any, formData: FormData) {
 }
 
 export async function toggleLocationActive(id: string, active: boolean) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   if (!user) {
     return { error: "No autenticado" };
@@ -139,10 +130,7 @@ export async function toggleLocationActive(id: string, active: boolean) {
 }
 
 export async function deleteLocation(id: string, name: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   if (!user) {
     return { error: "No autenticado" };
