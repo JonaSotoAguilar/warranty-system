@@ -5,7 +5,9 @@ const nextConfig = {
     return [
       {
         source: "/api/proxy/:path*",
-        destination: `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/:path*`,
+        destination: `${
+          process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "http://localhost"
+        }/:path*`,
       },
     ];
   },
