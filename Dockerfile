@@ -24,13 +24,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Argumentos necesarios para el build (Next.js inlining)
-ARG NEXT_PUBLIC_APPWRITE_ENDPOINT
-ARG NEXT_PUBLIC_APPWRITE_PROJECT
-
-ENV NEXT_PUBLIC_APPWRITE_ENDPOINT=${NEXT_PUBLIC_APPWRITE_ENDPOINT}
-ENV NEXT_PUBLIC_APPWRITE_PROJECT=${NEXT_PUBLIC_APPWRITE_PROJECT}
-
 # Generate Prisma Client
 # This is required because the prisma client is generated into node_modules
 RUN npx prisma generate
