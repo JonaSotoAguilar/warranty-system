@@ -178,7 +178,6 @@ export function WarrantyModal({
                   }
 
                   // Logic: If today, use current time. If past, use 10:00 AM.
-                  const selectedDate = new Date(val + "T00:00:00");
                   const now = new Date();
 
                   // Reset hours to compare just dates
